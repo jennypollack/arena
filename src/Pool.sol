@@ -6,25 +6,24 @@ pragma solidity ^0.8.13;
 
 /*
 
-              _                                         _ _     _       
-             | |                                       (_) |   | |      
-  _ __   ___ | |_   _ __ ___  ___ _ __   ___  _ __  ___ _| |__ | | ___  
- | '_ \ / _ \| __| | '__/ _ \/ __| '_ \ / _ \| '_ \/ __| | '_ \| |/ _ \ 
- | | | | (_) | |_  | | |  __/\__ \ |_) | (_) | | | \__ \ | |_) | |  __/ 
- |_|_|_|\___/ \__|_|_|  \___||___/ .__/ \___/|_| |_|___/_|_.__/|_|\___| 
-  / _|           | |         | | | |                                    
- | |_ ___  _ __  | | ___  ___| |_|_| ___  _ __                          
- |  _/ _ \| '__| | |/ _ \/ __| __|  / _ \| '__|                         
- | || (_) | |    | | (_) \__ \ |_  | (_) | |                            
- |_| \___/|_|  _ |_|\___/|___/\__|  \___/|_|                            
-     | |      | |            (_) |                                      
-  ___| |_ ___ | | ___ _ __    _| |_ ___ _ __ ___  ___                   
- / __| __/ _ \| |/ _ \ '_ \  | | __/ _ \ '_ ` _ \/ __|                  
- \__ \ || (_) | |  __/ | | | | | ||  __/ | | | | \__ \                  
- |___/\__\___/|_|\___|_| |_| |_|\__\___|_| |_| |_|___/                  
-                                                                        
-                                                                        
- */
+                __                                           _ __    __        
+   ____  ____  / /_   ________  _________  ____  ____  _____(_) /_  / /__      
+  / __ \/ __ \/ __/  / ___/ _ \/ ___/ __ \/ __ \/ __ \/ ___/ / __ \/ / _ \     
+ / / / / /_/ / /_   / /  /  __(__  ) /_/ / /_/ / / / (__  ) / /_/ / /  __/     
+/_/ /_/\____/\__/  /_/   \___/____/ .___/\____/_/ /_/____/_/_.___/_/\___/      
+    ____              __         /_/_                                          
+   / __/___  _____   / /___  _____/ /_   ____  _____                           
+  / /_/ __ \/ ___/  / / __ \/ ___/ __/  / __ \/ ___/                           
+ / __/ /_/ / /     / / /_/ (__  ) /_   / /_/ / /                               
+/_/  \____/_/     /_/\____/____/\__/ __\____/_/                                
+   _____/ /_____  / /__  ____     (_) /____  ____ ___  _____                   
+  / ___/ __/ __ \/ / _ \/ __ \   / / __/ _ \/ __ `__ \/ ___/                   
+ (__  ) /_/ /_/ / /  __/ / / /  / / /_/  __/ / / / / (__  )                    
+/____/\__/\____/_/\___/_/ /_/  /_/\__/\___/_/ /_/ /_/____/                     
+                                                                               
+
+
+*/
 
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 
@@ -59,6 +58,8 @@ contract Pool {
 
         uint256 currentBid;
         address currentBidder;
+
+        address prevOwner;
     }
 
     Auction auction;
@@ -78,7 +79,8 @@ contract Pool {
             end: 0,
             duration: 1 days,
             currentBid: 0,
-            currentBidder: address(0)
+            currentBidder: address(0),
+            prevOwner: address(0)
         });
 
     }
@@ -89,7 +91,8 @@ contract Pool {
         // Ensure the NFT is owned by the caller
         require(IERC721(collection).ownerOf(id_) == msg.sender, "You do not own this NFT");
         
-        // todo: approve the nft in the collection on this contract
+        // Transfer the NFT from the owner to the auction contract
+        IERC721(collection).safeTransferFrom(msg.sender, address(this), id_);
 
         // add the NFT to the user and nft inventory
         inventory.users.push(msg.sender);
@@ -128,9 +131,8 @@ contract Pool {
 
         require(found, "NFT not found in your inventory");
 
-
-        // TODO: return the NFT to the user
-        // IERC721(nftContract).transferFrom(address(this), address(msg.sender), tokenId);
+        // return the nft to the user
+        IERC721(collection).transferFrom(address(this), address(msg.sender), id_);
 
         // remove nftId from nft inventory
         inventory.nfts[id_] = false;
@@ -147,6 +149,9 @@ contract Pool {
 
         // todo: lockNFT
         auction.nftID = lockNFT();
+
+        // todo: set prev owner
+        // auction.prevOwner
     }
 
     // Function to end an auction
@@ -157,10 +162,19 @@ contract Pool {
 
     // 
     function settleAuction() public {
+        // todo:
+        // if auction duration is over you can settle the auction
+
         require(msg.sender == auction.currentBidder, "Only the winner can settle the auction");
 
         // they need to send enough eth to buy the nft
         require(msg.value >= auction.currentBid, 'Must send at least currentBid');
+
+        // get the owner of the NFT
+        // nftid to owner
+        // could store this on getting random
+
+        auction.nftID
 
 
 
@@ -173,5 +187,12 @@ contract Pool {
         
         auction.currentBid = newBidAmount;
         auction.currentBidder = msg.sender;
+    }
+
+
+    // msg sender gets paid by the contract for their accumulated value
+    // todo:
+    function redeem() public {
+
     }
 }
