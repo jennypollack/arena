@@ -149,8 +149,8 @@ contract Pool {
         auction.start = block.timestamp;
         auction.end = auction.start + auction.duration;
 
-        // todo: lockNFT
-        auction.nftID = lockNFT();
+        // TODO: lockNFT (getRandom)
+        // auction.nftID = lockNFT();
 
         // todo: set prev owner
         // auction.prevOwner
