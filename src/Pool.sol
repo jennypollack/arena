@@ -6,20 +6,24 @@ pragma solidity ^0.8.13;
 
 /*
 
-              _                                         _ _     _         __             _           _                      _        _              _ _                     
-             | |                                       (_) |   | |       / _|           | |         | |                    | |      | |            (_) |                    
-  _ __   ___ | |_   _ __ ___  ___ _ __   ___  _ __  ___ _| |__ | | ___  | |_ ___  _ __  | | ___  ___| |_    ___  _ __   ___| |_ ___ | | ___ _ __    _| |_ ___ _ __ ___  ___ 
- | '_ \ / _ \| __| | '__/ _ \/ __| '_ \ / _ \| '_ \/ __| | '_ \| |/ _ \ |  _/ _ \| '__| | |/ _ \/ __| __|  / _ \| '__| / __| __/ _ \| |/ _ \ '_ \  | | __/ _ \ '_ ` _ \/ __|
- | | | | (_) | |_  | | |  __/\__ \ |_) | (_) | | | \__ \ | |_) | |  __/ | || (_) | |    | | (_) \__ \ |_  | (_) | |    \__ \ || (_) | |  __/ | | | | | ||  __/ | | | | \__ \
- |_| |_|\___/ \__| |_|  \___||___/ .__/ \___/|_| |_|___/_|_.__/|_|\___| |_| \___/|_|    |_|\___/|___/\__|  \___/|_|    |___/\__\___/|_|\___|_| |_| |_|\__\___|_| |_| |_|___/
-                                 | |                                                                                                                                        
-                                 |_|                                                                                                                                        
-
-
-
-
-
-
+              _                                         _ _     _       
+             | |                                       (_) |   | |      
+  _ __   ___ | |_   _ __ ___  ___ _ __   ___  _ __  ___ _| |__ | | ___  
+ | '_ \ / _ \| __| | '__/ _ \/ __| '_ \ / _ \| '_ \/ __| | '_ \| |/ _ \ 
+ | | | | (_) | |_  | | |  __/\__ \ |_) | (_) | | | \__ \ | |_) | |  __/ 
+ |_|_|_|\___/ \__|_|_|  \___||___/ .__/ \___/|_| |_|___/_|_.__/|_|\___| 
+  / _|           | |         | | | |                                    
+ | |_ ___  _ __  | | ___  ___| |_|_| ___  _ __                          
+ |  _/ _ \| '__| | |/ _ \/ __| __|  / _ \| '__|                         
+ | || (_) | |    | | (_) \__ \ |_  | (_) | |                            
+ |_| \___/|_|  _ |_|\___/|___/\__|  \___/|_|                            
+     | |      | |            (_) |                                      
+  ___| |_ ___ | | ___ _ __    _| |_ ___ _ __ ___  ___                   
+ / __| __/ _ \| |/ _ \ '_ \  | | __/ _ \ '_ ` _ \/ __|                  
+ \__ \ || (_) | |  __/ | | | | | ||  __/ | | | | \__ \                  
+ |___/\__\___/|_|\___|_| |_| |_|\__\___|_| |_| |_|___/                  
+                                                                        
+                                                                        
  */
 
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
@@ -30,14 +34,14 @@ contract Pool {
     address public collection;
 
     struct Inventory {
-        
         mapping(uint256 => bool) nfts;
         address[] users;
-        // stores the rewards accumulated for the active users
-        mapping(address => uint256) accumulatedRewards;
 
         // stores the nft ids that a user has put in the pool
         mapping(address => uint256[]) deposits;
+
+        // stores the rewards accumulated for the active users
+        mapping(address => uint256) accumulatedRewards;
     }
 
     Inventory inventory;
@@ -45,6 +49,7 @@ contract Pool {
     struct Auction {
         // todo
         bool active;
+
         uint256 nftID;
         uint256 start;
         uint256 end;
@@ -67,7 +72,6 @@ contract Pool {
         // Ensure the NFT is owned by the caller
         require(IERC721(collection).ownerOf(id_) == msg.sender, "You do not own this NFT");
         
-
         // todo: approve the nft in the collection on this contract
 
         // add the NFT to the user and nft inventory
@@ -128,5 +132,14 @@ contract Pool {
     // Function to end an auction
     function endAuction() public {
         auction.active = false;
+    }
+
+
+    // allows anyone to bid on the current nft on auction
+    function bid(uint256 newBidAmount) external {
+        require(newBidAmount > auction.currentBid, "Bid must be higher than the current bid");
+        
+        auction.currentBid = newBidAmount;
+        auction.currentBidder = msg.sender;
     }
 }
