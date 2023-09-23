@@ -34,12 +34,16 @@ contract Pool {
 
     struct Inventory {
 
-        // change this back to an array instead of a mapping?
-        mapping(uint256 => bool) nfts;
+        
+        // store this as the contract address or address 0 when it's empty?
+        // tokenId to owner
+        mapping(uint256 => address) nfts;
         address[] users;
 
         // stores the nft ids that a user has put in the pool
         mapping(address => uint256[]) deposits;
+
+
 
         // stores the rewards accumulated for the active users
         mapping(address => uint256) accumulatedRewards;
@@ -58,7 +62,7 @@ contract Pool {
         uint256 currentBid;
         address currentBidder;
 
-        address prevOwner;
+        // address prevOwner; todo: i think remove this and use it locally in settleAuction
     }
 
     Auction auction;
@@ -94,7 +98,7 @@ contract Pool {
 
         // add the NFT to the user and nft inventory
         inventory.users.push(msg.sender);
-        inventory.nfts[id_] = true;
+        inventory.nfts[id_] = msg.sender;
 
         // add the nft to the user's deposits
         inventory.deposits[msg.sender].push(id_);
@@ -106,7 +110,7 @@ contract Pool {
     function removeFromInventory(uint256 id_) public {
         require(!auction.active, "Auction is currently active");
         require(inventory.deposits[msg.sender].length > 0, "You do not have any NFTs in the inventory");
-        require(inventory.nfts[id_] = true, "Nft not in inventory");
+        require(inventory.nfts[id_] = msg.sender, "Nft not in inventory");
 
         // TODO
         // got this from chatgpt but i'm not sure i like it
@@ -133,7 +137,7 @@ contract Pool {
         IERC721(collection).transferFrom(address(this), address(msg.sender), id_);
 
         // remove nftId from nft inventory
-        inventory.nfts[id_] = false;
+        inventory.nfts[id_] = address(0);
  
     }
 
@@ -150,6 +154,7 @@ contract Pool {
 
         // todo: set prev owner
         // auction.prevOwner
+
     }
 
     // Function to end an auction
@@ -172,7 +177,15 @@ contract Pool {
         // nftid to owner
         // could store this on getting random
 
-        auction.nftID
+        // gives me the address of the prev owner
+        address prevOwner = inventory.nfts[auction.nftID];
+
+        // add accumulated rewards to them 
+        inventory.accumulatedRewards[prevOwner] += auction.currentBid * .8;
+
+        // now split the remaining 20% across all users
+        
+
 
 
 
