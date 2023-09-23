@@ -1,6 +1,27 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.13;
 
+
+// not responsible for lost or stolen items
+
+/*
+
+              _                                         _ _     _         __             _           _                      _        _              _ _                     
+             | |                                       (_) |   | |       / _|           | |         | |                    | |      | |            (_) |                    
+  _ __   ___ | |_   _ __ ___  ___ _ __   ___  _ __  ___ _| |__ | | ___  | |_ ___  _ __  | | ___  ___| |_    ___  _ __   ___| |_ ___ | | ___ _ __    _| |_ ___ _ __ ___  ___ 
+ | '_ \ / _ \| __| | '__/ _ \/ __| '_ \ / _ \| '_ \/ __| | '_ \| |/ _ \ |  _/ _ \| '__| | |/ _ \/ __| __|  / _ \| '__| / __| __/ _ \| |/ _ \ '_ \  | | __/ _ \ '_ ` _ \/ __|
+ | | | | (_) | |_  | | |  __/\__ \ |_) | (_) | | | \__ \ | |_) | |  __/ | || (_) | |    | | (_) \__ \ |_  | (_) | |    \__ \ || (_) | |  __/ | | | | | ||  __/ | | | | \__ \
+ |_| |_|\___/ \__| |_|  \___||___/ .__/ \___/|_| |_|___/_|_.__/|_|\___| |_| \___/|_|    |_|\___/|___/\__|  \___/|_|    |___/\__\___/|_|\___|_| |_| |_|\__\___|_| |_| |_|___/
+                                 | |                                                                                                                                        
+                                 |_|                                                                                                                                        
+
+
+
+
+
+
+ */
+
 import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
 
 
@@ -9,7 +30,8 @@ contract Pool {
     address public collection;
 
     struct Inventory {
-        uint256[] nfts;
+        
+        mapping(uint256 => bool) nfts;
         address[] users;
         // stores the rewards accumulated for the active users
         mapping(address => uint256) accumulatedRewards;
@@ -32,28 +54,30 @@ contract Pool {
 
     }
 
-    // need to be able to add an NFT to the pool's inventory
+    // allows a user to add an nft they own to the 
+    // the pool's inventory
     function addToInventory(uint256 id_) public {
         // Ensure the NFT is owned by the caller
         require(IERC721(collection).ownerOf(id_) == msg.sender, "You do not own this NFT");
         
-        // do we care if the nft is already in the inventory?
 
         // todo: approve the nft in the collection on this contract
 
         // add the NFT to the user and nft inventory
         inventory.users.push(msg.sender);
-        inventory.nfts.push(id_);
+        inventory.nfts[id_] = true;
 
         // add the nft to the user's deposits
         inventory.deposits[msg.sender].push(id_);
 
     }
 
-    // Function to remove an NFT from the pool's inventory
+    // allows a user to remove an nft they deposited into the pool
+    // from the inventory
     function removeFromInventory(uint256 id_) public {
         require(!auction.active, "Auction is currently active");
         require(inventory.deposits[msg.sender].length > 0, "You do not have any NFTs in the inventory");
+        require(inventory.nfts[id_] = true, "Nft not in inventory");
 
         bool found = false;
         uint256[] storage userNFTList = inventory.deposits[msg.sender];
@@ -73,8 +97,24 @@ contract Pool {
 
         require(found, "NFT not found in your inventory");
 
+
         // TODO: return the NFT to the user
         // IERC721(nftContract).transferFrom(address(this), address(msg.sender), tokenId);
+
+        // remove nftId from nft inventory
+        inventory.nfts[id_] = false;
  
+    }
+
+
+    //////// auction management
+    // Function to start an auction
+    function startAuction() external onlyOwner {
+        auction.active = true;
+    }
+
+    // Function to end an auction
+    function endAuction() external onlyOwner {
+        auction.active = false;
     }
 }
