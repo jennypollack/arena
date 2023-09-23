@@ -48,6 +48,7 @@ contract Pool {
         uint256 nftID;
         uint256 start;
         uint256 end;
+        uint256 duration;
 
         uint256 currentBid;
         address currentBidder;
@@ -116,7 +117,12 @@ contract Pool {
     //////// auction management
     // Function to start an auction
     function startAuction() public {
-        auction.active = true;
+        if(auction.active) return; 
+        auction.start = block.timestamp;
+        auction.end = auction.start + auction.duration;
+
+        // todo: lockNFT
+        auction.nftID = lockNFT();
     }
 
     // Function to end an auction
