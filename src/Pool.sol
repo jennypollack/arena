@@ -45,6 +45,12 @@ contract Pool {
     struct Auction {
         // todo
         bool active;
+        uint256 nftID;
+        uint256 start;
+        uint256 end;
+
+        uint256 currentBid;
+        address currentBidder;
     }
 
     Auction auction;
@@ -109,12 +115,12 @@ contract Pool {
 
     //////// auction management
     // Function to start an auction
-    function startAuction() external onlyOwner {
+    function startAuction() public {
         auction.active = true;
     }
 
     // Function to end an auction
-    function endAuction() external onlyOwner {
+    function endAuction() public {
         auction.active = false;
     }
 }
