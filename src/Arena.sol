@@ -5,9 +5,9 @@ contract Arena {
     mapping(address => address) public collectionToPool;
     address[] public deployedPools;
 
-
     // creates a pool for a specified collection
     // one pool per collection can be made
+    // todo:
     function createPool(address nftCollection) public {
     }
 
