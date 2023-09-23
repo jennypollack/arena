@@ -184,9 +184,7 @@ contract Pool {
         inventory.accumulatedRewards[prevOwner] += auction.currentBid * .8;
 
         // now split the remaining 20% across all users
-        
-
-
+        // TODO:
 
 
     }
@@ -202,7 +200,7 @@ contract Pool {
 
 
     // msg sender gets paid by the contract for their accumulated value
-    // todo:
+    // TODO:
     function redeem() public {
 
     }
