@@ -19,4 +19,9 @@ contract Pool {
         collection = collection_;
 
     }
+
+    // need to be able to add an NFT to the pool's inventory
+    function addToInventory(uint256 id_) public {
+        
+    }
 }
