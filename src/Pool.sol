@@ -64,6 +64,21 @@ contract Pool {
     constructor(address collection_) {
         collection = collection_;
 
+        // Initialize the inventory and auction structs
+        inventory = Inventory({
+            users: new address[](0) // Initialize with an empty array of users
+        });
+
+        auction = Auction({
+            active: false,          // Auction is not active initially
+            nftID: 0,
+            start: 0,
+            end: 0,
+            duration: 1 days,
+            currentBid: 0,
+            currentBidder: address(0)
+        });
+
     }
 
     // allows a user to add an nft they own to the 
