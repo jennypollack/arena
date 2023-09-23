@@ -34,6 +34,8 @@ contract Pool {
     address public collection;
 
     struct Inventory {
+
+        // change this back to an array instead of a mapping?
         mapping(uint256 => bool) nfts;
         address[] users;
 
@@ -105,6 +107,9 @@ contract Pool {
         require(inventory.deposits[msg.sender].length > 0, "You do not have any NFTs in the inventory");
         require(inventory.nfts[id_] = true, "Nft not in inventory");
 
+        // TODO
+        // got this from chatgpt but i'm not sure i like it
+        // maybe should use delete
         bool found = false;
         uint256[] storage userNFTList = inventory.deposits[msg.sender];
 
@@ -147,6 +152,18 @@ contract Pool {
     // Function to end an auction
     function endAuction() public {
         auction.active = false;
+    }
+
+
+    // 
+    function settleAuction() public {
+        require(msg.sender == auction.currentBidder, "Only the winner can settle the auction");
+
+        // they need to send enough eth to buy the nft
+        require(msg.value >= auction.currentBid, 'Must send at least currentBid');
+
+
+
     }
 
 

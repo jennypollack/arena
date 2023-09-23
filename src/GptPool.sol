@@ -29,6 +29,8 @@ contract GptPool {
 
     constructor(address collection_) {
         collection = collection_;
+
+
     }
 
     /**
