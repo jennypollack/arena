@@ -48,7 +48,6 @@ contract Pool {
     Inventory inventory;
 
     struct Auction {
-        // todo
         bool active;
 
         uint256 nftID;
@@ -85,8 +84,7 @@ contract Pool {
 
     }
 
-    // allows a user to add an nft they own to the 
-    // the pool's inventory
+    // allows a user to add an nft they own to the pool's inventory
     function addToInventory(uint256 id_) public {
         // Ensure the NFT is owned by the caller
         require(IERC721(collection).ownerOf(id_) == msg.sender, "You do not own this NFT");
