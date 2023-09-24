@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 // An example of a consumer contract that relies on a subscription for funding.
 pragma solidity ^0.8.7;
 
@@ -17,15 +17,18 @@ import "@chainlink/contracts/src/v0.8/shared/access/ConfirmedOwner.sol";
  * DO NOT USE THIS CODE IN PRODUCTION.
  */
 
-contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
+contract ArenaRandom is VRFConsumerBaseV2, ConfirmedOwner {
     event RequestSent(uint256 requestId, uint32 numWords);
     event RequestFulfilled(uint256 requestId, uint256[] randomWords);
 
     struct RequestStatus {
         bool fulfilled; // whether the request has been successfully fulfilled
         bool exists; // whether a requestId exists
-        uint256[] randomWords;
+        uint256 collectionLength;
+        uint256 randomNum;
+        bool numUsed;
     }
+
     mapping(uint256 => RequestStatus)
         public s_requests; /* requestId --> requestStatus */
     VRFCoordinatorV2Interface COORDINATOR;
@@ -56,26 +59,25 @@ contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
 
     // For this example, retrieve 2 random values in one request.
     // Cannot exceed VRFCoordinatorV2.MAX_NUM_WORDS.
-    uint32 numWords = 2;
+    uint32 numWords = 1;
 
-    /**
-     * HARDCODED FOR SEPOLIA
-     * COORDINATOR: 0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625
-     */
+    mapping(uint256 => uint256) public auctionIdToRequestId;
+
     constructor(
-        uint64 subscriptionId
+        uint64 subscriptionId,
+        address _coordinator
     )
-        VRFConsumerBaseV2(0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625)
+        VRFConsumerBaseV2(_coordinator)
         ConfirmedOwner(msg.sender)
     {
         COORDINATOR = VRFCoordinatorV2Interface(
-            0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625
+            _coordinator
         );
         s_subscriptionId = subscriptionId;
     }
 
     // Assumes the subscription is funded sufficiently.
-    function requestRandomWords()
+    function reset(uint256[] memory _collection, uint256 auctionId)
         external
         onlyOwner
         returns (uint256 requestId)
@@ -89,12 +91,16 @@ contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
             numWords
         );
         s_requests[requestId] = RequestStatus({
-            randomWords: new uint256[](0),
+            fulfilled: false,
             exists: true,
-            fulfilled: false
+            collectionLength: _collection.length,
+            randomNum: 0,
+            numUsed:false
         });
+
         requestIds.push(requestId);
         lastRequestId = requestId;
+        auctionIdToRequestId[auctionId] = requestId;
         emit RequestSent(requestId, numWords);
         return requestId;
     }
@@ -105,15 +111,16 @@ contract VRFv2Consumer is VRFConsumerBaseV2, ConfirmedOwner {
     ) internal override {
         require(s_requests[_requestId].exists, "request not found");
         s_requests[_requestId].fulfilled = true;
-        s_requests[_requestId].randomWords = _randomWords;
+        s_requests[_requestId].randomNum = _randomWords[0] % (s_requests[_requestId].collectionLength) + 1;
         emit RequestFulfilled(_requestId, _randomWords);
     }
 
-    function getRequestStatus(
-        uint256 _requestId
-    ) external view returns (bool fulfilled, uint256[] memory randomWords) {
+    function getRandomNumber(
+        uint256 _auctionId
+    ) external view returns (bool fulfilled, uint256 randomNum, bool numUsed_) {
+        uint256 _requestId = auctionIdToRequestId[_auctionId];
         require(s_requests[_requestId].exists, "request not found");
         RequestStatus memory request = s_requests[_requestId];
-        return (request.fulfilled, request.randomWords);
+        return (request.fulfilled, request.randomNum, request.numUsed);
     }
 }
