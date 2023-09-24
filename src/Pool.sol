@@ -25,16 +25,15 @@ pragma solidity ^0.8.13;
 
 */
 
-import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
-
+//import "openzeppelin-contracts/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 
 contract Pool {
     // the collectionID 
     address public collection;
 
     struct Inventory {
-
-        
         // store this as the contract address or address 0 when it's empty?
         // tokenId to owner
         mapping(uint256 => address) nfts;
@@ -61,19 +60,15 @@ contract Pool {
 
         uint256 currentBid;
         address currentBidder;
+        address prevOwner;
 
         // address prevOwner; todo: i think remove this and use it locally in settleAuction
     }
 
-    Auction auction;
+    Auction public auction;
 
     constructor(address collection_) {
         collection = collection_;
-
-        // Initialize the inventory and auction structs
-        inventory = Inventory({
-            users: new address[](0) // Initialize with an empty array of users
-        });
 
         auction = Auction({
             active: false,          // Auction is not active initially
@@ -107,10 +102,10 @@ contract Pool {
 
     // allows a user to remove an nft they deposited into the pool
     // from the inventory
-    function removeFromInventory(uint256 id_) public {
+    /*function removeFromInventory(uint256 id_) public {
         require(!auction.active, "Auction is currently active");
         require(inventory.deposits[msg.sender].length > 0, "You do not have any NFTs in the inventory");
-        require(inventory.nfts[id_] = msg.sender, "Nft not in inventory");
+        require(inventory.nfts[id_] == msg.sender, "Nft not in inventory");
 
         // TODO
         // got this from chatgpt but i'm not sure i like it
@@ -139,7 +134,7 @@ contract Pool {
         // remove nftId from nft inventory
         inventory.nfts[id_] = address(0);
  
-    }
+    } */
 
 
     //////// auction management
@@ -164,7 +159,7 @@ contract Pool {
 
 
     // 
-    function settleAuction() public {
+    function settleAuction() public payable {
         // todo:
         // if auction duration is over you can settle the auction
 
@@ -181,7 +176,7 @@ contract Pool {
         address prevOwner = inventory.nfts[auction.nftID];
 
         // add accumulated rewards to them 
-        inventory.accumulatedRewards[prevOwner] += auction.currentBid * .8;
+        inventory.accumulatedRewards[prevOwner] += (auction.currentBid * 4/5);
 
         // now split the remaining 20% across all users
         // TODO:
@@ -201,7 +196,7 @@ contract Pool {
 
     // msg sender gets paid by the contract for their accumulated value
     // TODO:
-    function redeem() public {
+    /*function redeem() public {
 
-    }
+    }*/
 }

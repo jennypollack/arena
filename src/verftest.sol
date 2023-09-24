@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: UNLICENSED
 // An example of a consumer contract that relies on a subscription for funding.
 pragma solidity ^0.8.7;
 
